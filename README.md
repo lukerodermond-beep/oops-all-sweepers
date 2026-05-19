@@ -8,31 +8,6 @@ The name is a joke about competitive teambuilding: sometimes, when you are not c
 
 ---
 
-## Table of contents
-
-- [Overview](#overview)
-- [Main features](#main-features)
-- [Screenshots](#screenshots)
-- [Downloadable Windows app](#downloadable-windows-app)
-- [Running from source](#running-from-source)
-- [How the app works](#how-the-app-works)
-- [Team Generator](#team-generator)
-- [Set Browser](#set-browser)
-- [Custom Team Builder](#custom-team-builder)
-- [Manual Team Editor](#manual-team-editor)
-- [Team analysis](#team-analysis)
-- [Pokémon Showdown export](#pokémon-showdown-export)
-- [Data sources](#data-sources)
-- [Data update system](#data-update-system)
-- [Project structure](#project-structure)
-- [Building the Windows app](#building-the-windows-app)
-- [Files not included in GitHub](#files-not-included-in-github)
-- [Known limitations](#known-limitations)
-- [Credits and disclaimer](#credits-and-disclaimer)
-- [License / usage note](#license--usage-note)
-
----
-
 ## Overview
 
 Oops All Sweepers is designed as a local teambuilding tool for competitive Pokémon fans.
