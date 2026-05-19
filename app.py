@@ -163,107 +163,6 @@ def get_unique_roles_from_sets(sets_df):
     return sorted(roles)
 
 
-def build_custom_team_row(selected_set, tier_df, shiny_chance):
-    pokemon_name = selected_set["pokemon"]
-
-    matching_base_rows = tier_df[tier_df["name"] == pokemon_name]
-
-    if matching_base_rows.empty:
-        return None
-
-    base_row = matching_base_rows.iloc[0].to_dict()
-
-    set_roles = selected_set["roles"]
-    chosen_role = set_roles[0] if len(set_roles) > 0 else "custom"
-
-    is_shiny = determine_shiny_status(
-        pokemon_name,
-        shiny_chance=shiny_chance
-    )
-
-    custom_row = base_row.copy()
-
-    custom_row.update({
-        "chosen_role": chosen_role,
-        "set_name": selected_set["set_name"],
-        "format": selected_set["format"],
-        "item": selected_set["item"],
-        "ability": selected_set["ability"],
-        "nature": selected_set["nature"],
-        "tera_type": selected_set["tera_type"],
-        "shiny": is_shiny,
-
-        "ev_hp": selected_set["ev_hp"],
-        "ev_atk": selected_set["ev_atk"],
-        "ev_def": selected_set["ev_def"],
-        "ev_spa": selected_set["ev_spa"],
-        "ev_spd": selected_set["ev_spd"],
-        "ev_spe": selected_set["ev_spe"],
-
-        "iv_hp": selected_set["iv_hp"],
-        "iv_atk": selected_set["iv_atk"],
-        "iv_def": selected_set["iv_def"],
-        "iv_spa": selected_set["iv_spa"],
-        "iv_spd": selected_set["iv_spd"],
-        "iv_spe": selected_set["iv_spe"],
-
-        "move_1": selected_set["move_1"],
-        "move_2": selected_set["move_2"],
-        "move_3": selected_set["move_3"],
-        "move_4": selected_set["move_4"],
-        "item_clause_warning": False
-    })
-
-    return custom_row
-
-
-def add_to_custom_team(custom_row):
-    if custom_row is None:
-        st.warning("Could not add this Pokémon because base data is missing.")
-        return
-
-    if len(st.session_state.custom_team) >= 6:
-        st.warning("Your custom team already has 6 Pokémon.")
-        return
-
-    existing_names = [
-        row["name"] for row in st.session_state.custom_team
-    ]
-
-    if custom_row["name"] in existing_names:
-        st.warning("This Pokémon is already on your custom team.")
-        return
-
-    st.session_state.custom_team.append(custom_row)
-    st.success(f"Added {custom_row['name']} to your custom team.")
-
-
-def add_generated_row_to_custom_team(row):
-    custom_row = row.to_dict()
-    add_to_custom_team(custom_row)
-
-
-def remove_from_custom_team(index):
-    if 0 <= index < len(st.session_state.custom_team):
-        removed = st.session_state.custom_team.pop(index)
-        st.success(f"Removed {removed['name']} from your custom team.")
-
-
-def clear_custom_team():
-    st.session_state.custom_team = []
-    st.success("Custom team cleared.")
-
-
-def update_custom_team_member(index, updated_values):
-    if 0 <= index < len(st.session_state.custom_team):
-        for key, value in updated_values.items():
-            st.session_state.custom_team[index][key] = value
-
-        st.success(
-            f"Updated {st.session_state.custom_team[index]['name']}."
-        )
-
-
 def is_missing_value(value):
     if pd.isna(value):
         return True
@@ -336,6 +235,128 @@ def infer_ability_from_known_sets(row):
 
     except Exception:
         return None
+
+
+def fill_inferred_ability_for_custom_row(custom_row):
+    if custom_row is None:
+        return None
+
+    generation = int(custom_row.get("generation", 9))
+    current_ability = custom_row.get("ability", "")
+
+    if generation >= 3 and is_missing_value(current_ability):
+        inferred_ability = infer_ability_from_known_sets(custom_row)
+
+        if inferred_ability:
+            custom_row["ability"] = inferred_ability
+
+    return custom_row
+
+
+def build_custom_team_row(selected_set, tier_df, shiny_chance):
+    pokemon_name = selected_set["pokemon"]
+
+    matching_base_rows = tier_df[tier_df["name"] == pokemon_name]
+
+    if matching_base_rows.empty:
+        return None
+
+    base_row = matching_base_rows.iloc[0].to_dict()
+
+    set_roles = selected_set["roles"]
+    chosen_role = set_roles[0] if len(set_roles) > 0 else "custom"
+
+    is_shiny = determine_shiny_status(
+        pokemon_name,
+        shiny_chance=shiny_chance
+    )
+
+    custom_row = base_row.copy()
+
+    custom_row.update({
+        "chosen_role": chosen_role,
+        "set_name": selected_set["set_name"],
+        "format": selected_set["format"],
+        "item": selected_set["item"],
+        "ability": selected_set["ability"],
+        "nature": selected_set["nature"],
+        "tera_type": selected_set["tera_type"],
+        "shiny": is_shiny,
+
+        "ev_hp": selected_set["ev_hp"],
+        "ev_atk": selected_set["ev_atk"],
+        "ev_def": selected_set["ev_def"],
+        "ev_spa": selected_set["ev_spa"],
+        "ev_spd": selected_set["ev_spd"],
+        "ev_spe": selected_set["ev_spe"],
+
+        "iv_hp": selected_set["iv_hp"],
+        "iv_atk": selected_set["iv_atk"],
+        "iv_def": selected_set["iv_def"],
+        "iv_spa": selected_set["iv_spa"],
+        "iv_spd": selected_set["iv_spd"],
+        "iv_spe": selected_set["iv_spe"],
+
+        "move_1": selected_set["move_1"],
+        "move_2": selected_set["move_2"],
+        "move_3": selected_set["move_3"],
+        "move_4": selected_set["move_4"],
+        "item_clause_warning": False
+    })
+
+    custom_row = fill_inferred_ability_for_custom_row(custom_row)
+
+    return custom_row
+
+
+def add_to_custom_team(custom_row):
+    custom_row = fill_inferred_ability_for_custom_row(custom_row)
+
+    if custom_row is None:
+        st.warning("Could not add this Pokémon because base data is missing.")
+        return
+
+    if len(st.session_state.custom_team) >= 6:
+        st.warning("Your custom team already has 6 Pokémon.")
+        return
+
+    existing_names = [
+        row["name"] for row in st.session_state.custom_team
+    ]
+
+    if custom_row["name"] in existing_names:
+        st.warning("This Pokémon is already on your custom team.")
+        return
+
+    st.session_state.custom_team.append(custom_row)
+    st.success(f"Added {custom_row['name']} to your custom team.")
+
+
+def add_generated_row_to_custom_team(row):
+    custom_row = row.to_dict()
+    custom_row = fill_inferred_ability_for_custom_row(custom_row)
+    add_to_custom_team(custom_row)
+
+
+def remove_from_custom_team(index):
+    if 0 <= index < len(st.session_state.custom_team):
+        removed = st.session_state.custom_team.pop(index)
+        st.success(f"Removed {removed['name']} from your custom team.")
+
+
+def clear_custom_team():
+    st.session_state.custom_team = []
+    st.success("Custom team cleared.")
+
+
+def update_custom_team_member(index, updated_values):
+    if 0 <= index < len(st.session_state.custom_team):
+        for key, value in updated_values.items():
+            st.session_state.custom_team[index][key] = value
+
+        st.success(
+            f"Updated {st.session_state.custom_team[index]['name']}."
+        )
 
 
 def format_missing_display_value(column, row):
